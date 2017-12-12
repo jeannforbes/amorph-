@@ -67,9 +67,9 @@ class PBody {
     return false;
   }
 
-  isFacing(pb, tolerance) {
-    const angle = this.loc.dot(pb.loc);
-    if (90 - angle < (tolerance || 45)) return true;
+  isFacing(pb) {
+    const angle = this.forward.clone().normalize().dot(pb.loc.clone().normalize());
+    if (angle > 0) return true;
     return false;
   }
 }

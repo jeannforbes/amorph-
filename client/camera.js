@@ -20,6 +20,7 @@ class Camera{
 
     clear(ctx){
         ctx.save();
+        ctx.fillStyle = '#444';
         ctx.fillRect(0,0,this.canvas.width,this.canvas.height);
         ctx.restore();
     }
@@ -45,21 +46,42 @@ class Camera{
             this.centerOn(new Vector(p.pbody.loc.x, p.pbody.loc.y));
         let pos = this.worldToCamera(new Vector(p.pbody.loc.x, p.pbody.loc.y));
         ctx.save();
-        ctx.fillStyle = 'red';
+        if(p.attackCooldown > 0) ctx.fillStyle = 'blue';
+        else ctx.fillStyle = 'rgba(0,255,0,'+p.health/5+')';
+        ctx.strokeStyle = '#000';
         ctx.translate(pos.x,pos.y);
+        // Draw body
         ctx.beginPath();
-        ctx.arc(0,0,20,0,2*Math.PI);
+        ctx.arc(0,0,p.pbody.mass,0,2*Math.PI);
         ctx.fill();
+        // Draw sword
+        let forward = new Vector(p.pbody.vel.x, p.pbody.vel.y).normalize();
+        forward.x *= p.attackRange;
+        forward.y *= p.attackRange;
+        ctx.beginPath();
+        ctx.moveTo(0,0);
+        ctx.lineTo(forward.x, forward.y);
+        ctx.stroke();
+        // Write name & score
+        ctx.save();
+        ctx.font = '16px Roboto';
+        ctx.fillStyle = 'black';
+        ctx.fillText(p.name, p.pbody.mass+2,p.pbody.mass-10);
+        ctx.fillText(p.score, p.pbody.mass,p.pbody.mass+10);
+        ctx.restore();
         ctx.restore();
     }
 
     drawEnemy(ctx, p){
         let pos = this.worldToCamera(new Vector(p.pbody.loc.x, p.pbody.loc.y));
         ctx.save();
-        ctx.fillStyle = 'blue';
+        if(p.isVulnerable) ctx.fillStyle = 'red';
+        else if(p.isClutter) ctx.fillStyle = 'purple';
+        else if(p.isBiter) ctx.fillStyle = 'blue';
+        else ctx.fillStyle = 'green';
         ctx.translate(pos.x,pos.y);
         ctx.beginPath();
-        ctx.arc(0,10,10,0,2*Math.PI);
+        ctx.arc(0,0,p.pbody.mass,0,2*Math.PI);
         ctx.fill();
         ctx.restore();
     }

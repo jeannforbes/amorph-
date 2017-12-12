@@ -1,13 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link href="https://fonts.googleapis.com/css?family=Roboto|Saira+Extra+Condensed" rel="stylesheet">
+    <meta charset='utf-8' lang='en'>
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <link href='/style.css' rel='stylesheet'>
 </head>
 <body>
 
-<div id='banner'>Amor+</div>
+<div id='banner'>Amorphous<span style='color:red;'>+</span></div>
 <div id='container'>
+    <div id='inputter'>
+    <div class='inputContainer'>
+        <label>USERNAME</label><input type='text' id='username'>
+        <label>ROOM</label><input type='text' id='room'>
+    </div>
+    </div>
+    <div id='hiscores'></div>
+    <div id='chatContainer'>
+        <div id='chat'></div>
+        <input type = 'text' id='chatInput'>
+        <button type='button' id='chatButton'>SEND</button>
+    </div>
     <canvas id='canvas'></canvas>
 </div>
 <div id='adcontainer'>
@@ -28,15 +41,31 @@ let socket;
 let container;
 let canvas;
 let camera;
+let inputter;
+let hiscores;
+let chatContainer
+let chat;
+let chatInput;
+let chatButton;
+let signedIn;
+let draggingChat;
 
 const init = () => {
+    signedIn = false;
+    inputter = document.querySelector('#inputter');
+    document.querySelector('#username').focus();
     container = document.querySelector('#container');
+    chatContainer = document.querySelector('#chatContainer');
+    chat = document.querySelector('#chat');
+    chatInput = document.querySelector('#chatInput');
+    chatButton = document.querySelector('#chatButton');
+    hiscores = document.querySelector('#hiscores');
     canvas = document.querySelector('#canvas');
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
     camera = new Camera(canvas);
+
     socket = io.connect();
-    console.log(canvas.style);
 
     socket.on('joined', (data) => {
         camera.id = socket.id;
@@ -55,6 +84,13 @@ const init = () => {
                 h: canvas.height });
     }
 
+    chatContainer.onmousemove = (e) => {
+        if(draggingChat){
+            chatContainer.style.left = e.clientX-150+'px';
+            chatContainer.style.top = e.clientY-150+'px';
+        }
+    }
+
     window.oncontextmenu = (e) => {
         console.log(e);
         socket.emit('rightClick', {x: e})
@@ -63,9 +99,52 @@ const init = () => {
         return false;
     }
 
+    window.onkeydown = (e) => {
+        switch(e.keyCode){
+            case 13: // ENTER
+            if(document.activeElement === document.querySelector('#username')
+                || document.activeElement === document.querySelector('#room')){
+                socket.emit('joinData', {
+                    username: document.querySelector('#username').value,
+                    room: document.querySelector('#room').value
+                });
+                inputter.style.display = 'none';
+                inputter.style.visibility = 'hidden';
+            } else if(document.activeElement === chatInput){
+                socket.emit('chatmsg', {
+                    msg: chatInput.value,
+                });
+                chatInput.value = '';
+            }
+            break;
+            default:
+            break;
+        }
+    }
+
+    chatContainer.onmousedown = (e) => {
+        draggingChat = true;
+    }
+    window.onmouseup = (e) => {
+        draggingChat = false;
+    }
+
+    chatButton.onmouseup = (e) => {
+        socket.emit('chatMsg', {
+            msg: chatInput.value,
+        });
+    }
+
     // Get updates from server
     socket.on('update', (data) => {
         camera.data = data;
+    });
+
+    socket.on('chatmsg', (data) => {
+        let msg = document.createElement('p');
+        msg.className = 'chatmessage';
+        msg.innerText = data.id+': \t'+data.msg;
+        chat.appendChild(msg);
     });
 
     camera.render();

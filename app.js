@@ -22,14 +22,6 @@ app.get('/*.js', (req, res) => {
     res.sendFile(path+'.js', {root: './client/'}); 
 });
 
-/* TEXTURES */
-app.get('/*.jpg', (req, res) => {
-    let uid = req.params.uid;
-    let path = req.params[Object.keys(req.params)[0]] ? 
-        req.params[Object.keys(req.params)[0]] : 'stonetile0';
-    res.sendFile(path+'.jpg', {root: './media/textures/'}); 
-});
-
 let game;
 
 const init = () => {
