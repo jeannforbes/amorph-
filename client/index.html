@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="https://fonts.googleapis.com/css?family=Roboto|Saira+Extra+Condensed" rel="stylesheet">
+    <link href='/style.css' rel='stylesheet'>
+</head>
+<body>
+
+<div id='banner'>Amor+</div>
+<div id='container'>
+    <canvas id='canvas'></canvas>
+</div>
+<div id='adcontainer'>
+    <div id='ad'></div>
+</div>
+
+<!-- DEPENDENCIES -->
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://npmcdn.com/babel-core@5.8.38/browser.min.js"></script>
+
+<!-- MY SCRIPTS -->
+<script src="/camera.js"></script>
+
+<script>// type="text/babel" >
+"use strict";
+
+let socket;
+let container;
+let canvas;
+let camera;
+
+const init = () => {
+    container = document.querySelector('#container');
+    canvas = document.querySelector('#canvas');
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight;
+    camera = new Camera(canvas);
+    socket = io.connect();
+    console.log(canvas.style);
+
+    socket.on('joined', (data) => {
+        camera.id = socket.id;
+    })
+
+    // Input Event Handlers
+    canvas.onmouseup = (e) => {
+        socket.emit('mouseClick', {x: e.clientX, y: e.clientY});
+    }
+
+    canvas.onmousemove = (e) => {
+        socket.emit('mouseMove', 
+            {   x: e.clientX, 
+                y: e.clientY - 100,
+                w: canvas.width,
+                h: canvas.height });
+    }
+
+    window.oncontextmenu = (e) => {
+        console.log(e);
+        socket.emit('rightClick', {x: e})
+
+        e.preventDefault();
+        return false;
+    }
+
+    // Get updates from server
+    socket.on('update', (data) => {
+        camera.data = data;
+    });
+
+    camera.render();
+
+    window.onresize = (e) => {
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+    }
+};
+
+window.onload = init;
+
+</script>
+</body>
+</html>
