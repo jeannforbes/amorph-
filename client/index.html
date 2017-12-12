@@ -145,6 +145,7 @@ const init = () => {
         msg.className = 'chatmessage';
         msg.innerText = data.id+': \t'+data.msg;
         chat.appendChild(msg);
+        chat.scrollTop = chat.scrollHeight;
     });
 
     camera.render();
